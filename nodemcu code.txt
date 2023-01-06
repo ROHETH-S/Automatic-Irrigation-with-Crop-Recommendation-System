@@ -1,0 +1,113 @@
+
+#define BLYNK_TEMPLATE_ID "TMPLIZBmw50r"
+#define BLYNK_DEVICE_NAME "automatic  irrigation sysytem"
+#define BLYNK_AUTH_TOKEN "gMRRIbBAvy-K0apSqyE5x6cE1vmZTY6X"
+
+#define BLYNK_PRINT Serial
+#include <OneWire.h>
+#include <SPI.h>
+#include <BlynkSimpleEsp8266.h>
+#include <LiquidCrystal_I2C.h>
+#include <BlynkSimpleEsp8266.h>
+#include <ESP8266WiFi.h>
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+#include <DHT.h>
+#include <DallasTemperature.h>
+
+
+BlynkTimer timer;
+bool Relay = 0;
+
+
+#define sensor A0
+#define waterPump D3
+
+#define ONE_WIRE_BUS D2
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+char auth[] =BLYNK_AUTH_TOKEN;
+char ssid[] = "ROHETH S";
+char pass[] = "roheth007";
+
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+void sendSensor()
+{
+float h = dht.readHumidity();
+float t = dht.readTemperature();
+
+if (isnan(h) || isnan(t)) {
+Serial.println("Failed to read from DHT sensor!");
+return;
+}
+
+Blynk.virtualWrite(V5, h); //V5 is for Humidity
+Blynk.virtualWrite(V6, t); //V6 is for Temperature
+}
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(waterPump, OUTPUT);
+  digitalWrite(waterPump, HIGH);
+  lcd.init();
+  lcd.backlight();
+
+  Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
+
+  lcd.setCursor(1, 0);
+  lcd.print("System Loading");
+  for (int a = 0; a <= 15; a++) {
+    lcd.setCursor(a, 1);
+    lcd.print(".");
+    delay(500);
+  }
+  lcd.clear();
+
+  //Call the function
+  timer.setInterval(100L, soilMoistureSensor);
+}
+
+
+
+void soilMoistureSensor() {
+  int value = analogRead(sensor);
+  value = map(value, 0, 1024, 0, 100);
+  value = (value - 100) * -1;
+
+  Blynk.virtualWrite(V2, value);
+  lcd.setCursor(0, 0);
+  lcd.print("Moisture :");
+  lcd.print(value);
+  lcd.print(" ");
+
+  if(value < 40){
+    Blynk.logEvent("soil_moisture_alert","soil moisture level below 40, water your plant!");
+  }
+}
+
+
+BLYNK_WRITE(V1) {
+  Relay = param.asInt();
+
+  if (Relay == 1) {
+    digitalWrite(waterPump, LOW);
+    lcd.setCursor(0, 1);
+    lcd.print("Motor is ON ");
+  } else {
+    digitalWrite(waterPump, HIGH);
+    lcd.setCursor(0, 1);
+    lcd.print("Motor is OFF");
+  }
+}
+
+void loop()
+{
+Blynk.run();
+timer.run();
+}
