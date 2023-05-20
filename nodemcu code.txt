@@ -1,7 +1,7 @@
 
-#define BLYNK_TEMPLATE_ID "TMPLIZBmw50r"
-#define BLYNK_DEVICE_NAME "automatic  irrigation sysytem"
-#define BLYNK_AUTH_TOKEN "gMRRIbBAvy-K0apSqyE5x6cE1vmZTY6X"
+#define BLYNK_TEMPLATE_ID ""
+#define BLYNK_DEVICE_NAME ""
+#define BLYNK_AUTH_TOKEN ""
 
 #define BLYNK_PRINT Serial
 #include <OneWire.h>
@@ -30,8 +30,8 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 char auth[] =BLYNK_AUTH_TOKEN;
-char ssid[] = "ROHETH S";
-char pass[] = "roheth007";
+char ssid[] = "";
+char pass[] = "";
 
 #define DHTPIN 2
 #define DHTTYPE DHT11
